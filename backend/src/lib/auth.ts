@@ -10,7 +10,7 @@ export type AuthUser = {
   name: string;
 };
 
-/** Cookie options for JWT — cross-origin safe in production (Vercel ↔ Railway). */
+/** Cookie options for JWT — cross-origin safe in production (Vercel ↔ Render). */
 export function authCookieOptions(): CookieOptions {
   const isProd = process.env.NODE_ENV === "production";
   return {

@@ -11,6 +11,6 @@ const server = http.createServer(app);
 initSocket(server);
 startAuctionEnder(30_000);
 
-server.listen(port, () => {
-  console.log(`Bid On API listening on http://localhost:${port}`);
+server.listen(port, "0.0.0.0", () => {
+  console.log(`Bid On API listening on http://0.0.0.0:${port}`);
 });

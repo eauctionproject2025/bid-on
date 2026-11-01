@@ -1,70 +1,61 @@
-# Deploy Bid On — Vercel (frontend) + Railway (backend)
+# Deploy Bid On — Vercel (frontend) + Render (backend)
 
-This guide deploys the Next.js app to **Vercel** and the Express/Prisma API to **Railway**, with managed PostgreSQL and a persistent volume for uploads.
+This guide deploys the Next.js app to **Vercel** and the Express/Prisma API to **Render**, with managed PostgreSQL.
 
-## Architecture
+The Blueprint is [`render.yaml`](../render.yaml) at the repository root. Render creates:
 
-| Piece | Host | Root directory |
-|-------|------|----------------|
-| Frontend | Vercel | `frontend` |
-| Backend API | Railway | `backend` |
-| Database | Railway Postgres | — |
-| Uploads | Railway Volume at `/data/uploads` | — |
+| Piece | Host | Notes |
+|-------|------|--------|
+| Frontend | Vercel | Root directory `frontend` |
+| Backend API | Render web service `bid-on-api` | Root directory `backend`, region Singapore |
+| Database | Render Postgres `bid-on-db` | PostgreSQL 16, private network only |
 
 Wire the two apps together:
 
-- Vercel: `NEXT_PUBLIC_API_URL=https://<your-railway-api-host>` (no trailing slash)
-- Railway: `FRONTEND_URL=https://<your-vercel-app>.vercel.app` (no trailing slash)
+- Vercel: `NEXT_PUBLIC_API_URL=https://bid-on-api.onrender.com` (no trailing slash; use the real host Render assigns)
+- Render: `FRONTEND_URL=https://<your-vercel-app>.vercel.app` (no trailing slash)
 
 ## Prerequisites
 
-- GitHub repo with this project pushed
+- This repo on GitHub (`master`)
 - [Vercel](https://vercel.com) account
-- [Railway](https://railway.app) account
-- Strong `JWT_SECRET` for production
-- Optional: Resend / SMTP and Stripe test keys
+- [Render](https://render.com) account
+- The Blueprint generates `JWT_SECRET`. You still set `FRONTEND_URL` when Render asks.
 
-## 1. Deploy the backend on Railway
+Free Render limits (fine for a demo, not for production):
 
-1. Create a new Railway project → **Deploy from GitHub** → select this repo.
-2. Open the **API service** → **Settings** (required for this monorepo):
-   - **Root Directory:** `/backend` (not `/` — if left empty, Railpack fails looking for Nx/Next at the repo root)
-   - **Config-as-code path:** `/backend/railway.toml`
-   - Save, then **Redeploy**
-3. Confirm build/start (from [`backend/railway.toml`](../backend/railway.toml)):
-   - Build: `npm run build`
-   - Start: `npm start` (runs `prisma migrate deploy` then `node dist/index.js`)
-   - Healthcheck: `/api/health`
-4. Add a **PostgreSQL** plugin/database to the project. Link it so `DATABASE_URL` is available to the API service.
-5. Add a **Volume** mounted at `/data/uploads` so auction images survive redeploys.
-6. Set variables on the API service:
+- The web service sleeps after about 15 minutes with no traffic. The first request after sleep can take up to a minute, and the auction-end job pauses while the service is asleep.
+- Free Postgres expires 30 days after creation (then a 14-day upgrade window). One free database per workspace. No backups.
+- Uploaded images live on the instance disk (`UPLOAD_DIR=uploads`) and are wiped on the next deploy. A persistent disk needs a paid web service.
 
-| Variable | Value |
-|----------|--------|
-| `NODE_ENV` | `production` |
-| `JWT_SECRET` | long random secret |
-| `FRONTEND_URL` | your Vercel URL (set after frontend deploy if needed) |
-| `UPLOAD_DIR` | `/data/uploads` |
-| `RESEND_API_KEY` / `RESEND_FROM` | optional email |
-| `SMTP_*` | optional SMTP fallback |
-| `STRIPE_SECRET_KEY` | optional |
-| `STRIPE_WEBHOOK_SECRET` | optional (see Stripe below) |
-| `STRIPE_CURRENCY` | `usd` (or your enabled currency) |
+## 1. Deploy the API and database on Render
 
-`DATABASE_URL` and `PORT` are normally provided by Railway.
+1. Push `master` so GitHub has `render.yaml`.
+2. In the [Render Dashboard](https://dashboard.render.com), choose **New → Blueprint**.
+3. Connect GitHub and select this repository. Render reads `render.yaml`.
+4. When prompted, set `FRONTEND_URL` to the Vercel origin if you already have one. If the frontend is not deployed yet, use a placeholder such as `https://bid-on.vercel.app` and update it after the Vercel deploy.
+5. Apply the Blueprint. Render creates `bid-on-db` and `bid-on-api` in **Singapore** and deploys the API.
 
-7. Generate a public HTTPS domain for the service (**Settings → Networking → Generate Domain**).
-8. Deploy and open `https://<railway-host>/api/health` — expect `{ "ok": true, "service": "bid-on" }`.
-9. API docs (Swagger): `https://<railway-host>/api/docs`
-9. Optional demo data (once): open Railway shell for the service and run `npm run db:seed`.
+Build and start (from the Blueprint):
+
+- Build: `npm install --include=dev && npm run build` (`prisma` and `typescript` are devDependencies)
+- Start: `npm start` (`prisma migrate deploy`, then `node dist/index.js`)
+- Health check: `/api/health`
+- `DATABASE_URL` is the internal Postgres URL. Do not paste it into Git.
+
+6. Open the service URL Render shows, then `https://<render-host>/api/health`. Expect `{ "ok": true, "service": "bid-on" }`.
+7. API docs: `https://<render-host>/api/docs`
+8. Optional demo data (once): open the service **Shell** and run `npm run db:seed`.
+
+`PORT` is set by Render. The process listens on `0.0.0.0`.
 
 ### Stripe webhooks (if using Stripe)
 
-In the [Stripe Dashboard](https://dashboard.stripe.com/test/webhooks) (test mode), add endpoint:
+In the [Stripe Dashboard](https://dashboard.stripe.com/test/webhooks) (test mode), add:
 
-`https://<railway-host>/api/payments/webhook`
+`https://<render-host>/api/payments/webhook`
 
-Subscribe to Checkout session events you already handle, copy the signing secret into `STRIPE_WEBHOOK_SECRET`, and redeploy.
+Copy the signing secret into `STRIPE_WEBHOOK_SECRET` on the API service (Environment), add `STRIPE_SECRET_KEY` the same way, and redeploy. Leave both empty to keep simulated payments.
 
 ## 2. Deploy the frontend on Vercel
 
@@ -77,42 +68,45 @@ Subscribe to Checkout session events you already handle, copy the signing secret
 
 | Variable | Value |
 |----------|--------|
-| `NEXT_PUBLIC_API_URL` | `https://<railway-host>` (no trailing slash) |
+| `NEXT_PUBLIC_API_URL` | `https://<render-host>` (no trailing slash) |
 
 4. Deploy. Note the production URL (`https://….vercel.app`).
-5. Back on Railway, set `FRONTEND_URL` to that Vercel URL (exact origin, no path/trailing slash) and **redeploy** the API so CORS and Socket.IO allow the frontend.
+5. On Render, set `FRONTEND_URL` to that exact origin (scheme + host, no path, no trailing slash) and redeploy the API so CORS and Socket.IO allow the frontend.
 
 ## 3. Smoke test
 
-- [ ] `GET /api/health` on Railway returns OK  
-- [ ] Register / login from the Vercel site  
-- [ ] Live auction bids update (Socket.IO)  
-- [ ] Seller image upload persists after an API redeploy (volume)  
-- [ ] Stripe checkout (if configured) completes and webhook/session-status marks paid  
-
-## Order of operations tip
-
-If you deploy the API before the frontend exists, set a temporary `FRONTEND_URL` (or update it right after the first Vercel deploy). CORS and Socket.IO both read `FRONTEND_URL` at runtime.
+- [ ] `GET /api/health` on Render returns OK
+- [ ] Register / login from the Vercel site
+- [ ] Live auction bids update (Socket.IO). Wake the free API first if it has been idle.
+- [ ] Stripe checkout (if configured) completes and webhook/session-status marks paid
 
 ## Troubleshooting
 
-### `Railpack failed… Detected an Nx workspace with a Next.js app`
+### Build fails on `tsc` or `prisma`
 
-This is **not** an Nx repo. Railway is building from the **repository root** instead of `backend/`.
+The build command must install devDependencies:
 
-**Fix:** Service → **Settings** → **Root Directory** = `/backend`, config file = `/backend/railway.toml` → Redeploy.
+`npm install --include=dev && npm run build`
 
-You do **not** need `RAILPACK_NX_APP` for Bid On.
+Root directory must be `backend`, not the repository root.
 
-### Build succeeds but CORS / Socket.IO fail
+### Database connection refused during migrate
 
-`FRONTEND_URL` on Railway must exactly match the Vercel origin (scheme + host, no trailing slash), then redeploy the API.
+`bid-on-api` and `bid-on-db` must be in the same region (Singapore in `render.yaml`). `DATABASE_URL` must be the **internal** connection string from `fromDatabase`, not the external URL.
+
+### CORS or Socket.IO fails
+
+`FRONTEND_URL` on Render must exactly match the Vercel origin, then redeploy the API.
+
+### Free database expired
+
+Upgrade `bid-on-db` to a paid plan before the 14-day grace period ends, or the data is deleted.
 
 ## Custom domains (optional)
 
 1. Attach a custom domain on Vercel for the frontend.
-2. Attach a custom domain on Railway for the API.
-3. Update both `FRONTEND_URL` and `NEXT_PUBLIC_API_URL` to the new origins and redeploy each side.
+2. Attach a custom domain on Render for the API.
+3. Update `FRONTEND_URL` and `NEXT_PUBLIC_API_URL` to the new origins and redeploy each side.
 4. Update the Stripe webhook URL if you use Stripe.
 
 ## Local vs production env files
@@ -122,4 +116,4 @@ You do **not** need `RAILPACK_NX_APP` for Bid On.
 | Backend | `backend/.env` | [`backend/.env.example`](../backend/.env.example) |
 | Frontend | `frontend/.env.local` | [`frontend/.env.example`](../frontend/.env.example) |
 
-Never commit real secrets. Production secrets live only in the Vercel and Railway dashboards.
+Never commit real secrets. Production secrets live only in the Vercel and Render dashboards.

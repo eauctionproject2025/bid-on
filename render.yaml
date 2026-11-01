@@ -1,0 +1,49 @@
+# Bid On API + PostgreSQL on Render.
+# Frontend stays on Vercel. Dashboard → New → Blueprint → this repo.
+# Both resources must stay in the same region so the API can use the private database URL.
+
+services:
+  - type: web
+    name: bid-on-api
+    runtime: node
+    plan: free
+    region: singapore
+    branch: master
+    rootDir: backend
+    # prisma and typescript are devDependencies; NODE_ENV=production would skip them.
+    buildCommand: npm install --include=dev && npm run build
+    # prisma migrate deploy, then the API (see backend package.json "start")
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bid-on-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Set to the Vercel origin, no trailing slash. Prompted when the Blueprint is created.
+      - key: FRONTEND_URL
+        sync: false
+      # Free web services have no persistent disk. Uploaded images reset on each deploy.
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: STRIPE_CURRENCY
+        value: usd
+
+databases:
+  - name: bid-on-db
+    plan: free
+    region: singapore
+    databaseName: bidon
+    user: bidon
+    postgresMajorVersion: "16"
+    # API uses the internal connection string. Block public database access.
+    ipAllowList: []
