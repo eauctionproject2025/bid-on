@@ -1,0 +1,41 @@
+flowchart TB
+  subgraph External["External Entities"]
+    B[Buyer]
+    S[Seller]
+    A[Admin]
+    ST[Stripe]
+  end
+  subgraph System["Bid On Level-0 Processes"]
+    P1[1.0 Authenticate Users]
+    P2[2.0 Manage Listings]
+    P3[3.0 Moderate Auctions]
+    P4[4.0 Process Bids]
+    P5[5.0 Settle Payments]
+    P6[6.0 Notify Stakeholders]
+  end
+  subgraph Stores["Data Stores"]
+    D1[("D1 Users")]
+    D2[("D2 Auctions")]
+    D3[("D3 Bids")]
+    D4[("D4 Transactions")]
+    D5[("D5 Notifications")]
+  end
+  B --> P1
+  S --> P1
+  A --> P1
+  P1 --> D1
+  S --> P2
+  P2 --> D2
+  A --> P3
+  P3 --> D2
+  B --> P4
+  P4 --> D3
+  P4 --> D2
+  P4 --> P6
+  B --> P5
+  P5 --> ST
+  ST --> P5
+  P5 --> D4
+  P6 --> D5
+  P6 --> B
+  P6 --> S

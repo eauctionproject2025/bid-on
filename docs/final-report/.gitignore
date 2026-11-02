@@ -1,0 +1,4 @@
+# Keep thesis DOCX/sources in git; omit generated PDF per release preference
+project-report.pdf
+__pycache__/
+*.pyc

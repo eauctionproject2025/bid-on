@@ -1,0 +1,43 @@
+@startuml bidon-usecase
+left to right direction
+skinparam packageStyle rectangle
+
+actor Buyer
+actor Seller
+actor Admin
+
+rectangle "Bid On e-Auction System" {
+  usecase "Register / Login / Verify email" as UC1
+  usecase "Browse / Search auctions" as UC2
+  usecase "Place real-time bid" as UC3
+  usecase "Watchlist auctions" as UC4
+  usecase "Pay winner checkout (Stripe/escrow)" as UC5
+  usecase "Submit KYC / bank details" as UC6
+  usecase "Create listing with images" as UC7
+  usecase "Edit pending/live listing" as UC8
+  usecase "Approve / reject listings" as UC9
+  usecase "Suspend users / view KPIs / export CSV" as UC10
+  usecase "Resolve escrow disputes" as UC11
+  usecase "Rate counterparty after sale" as UC12
+}
+
+Buyer --> UC1
+Buyer --> UC2
+Buyer --> UC3
+Buyer --> UC4
+Buyer --> UC5
+Buyer --> UC6
+Buyer --> UC12
+
+Seller --> UC1
+Seller --> UC6
+Seller --> UC7
+Seller --> UC8
+Seller --> UC2
+Seller --> UC12
+
+Admin --> UC1
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+@enduml

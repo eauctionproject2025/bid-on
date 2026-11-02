@@ -1,0 +1,82 @@
+erDiagram
+  User {
+    string id PK
+    string name
+    string email UK
+    string passwordHash
+    string role
+    boolean verified
+    string kycStatus
+    string bankStatus
+    float ratingAvg
+    int ratingCount
+  }
+  Category {
+    string id PK
+    string name
+    string slug UK
+    string parentId FK
+  }
+  Auction {
+    string id PK
+    string sellerId FK
+    string categoryId FK
+    string title
+    decimal startPrice
+    decimal currentBid
+    decimal minBidIncrement
+    string status
+    datetime endsAt
+    string winnerId FK
+  }
+  Bid {
+    string id PK
+    string auctionId FK
+    string bidderId FK
+    decimal amount
+    datetime createdAt
+  }
+  Watchlist {
+    string id PK
+    string userId FK
+    string auctionId FK
+  }
+  Notification {
+    string id PK
+    string userId FK
+    string type
+    string message
+    boolean read
+  }
+  Transaction {
+    string id PK
+    string auctionId FK
+    string buyerId FK
+    string sellerId FK
+    decimal amount
+    string stripeSessionId UK
+    string status
+  }
+  Review {
+    string id PK
+    string auctionId FK
+    string fromUserId FK
+    string toUserId FK
+    int rating
+  }
+
+  User ||--o{ Auction : sells
+  User ||--o{ Auction : wins
+  User ||--o{ Bid : places
+  User ||--o{ Watchlist : watches
+  User ||--o{ Notification : receives
+  User ||--o{ Transaction : buys
+  User ||--o{ Transaction : earns
+  User ||--o{ Review : writes
+  User ||--o{ Review : receives
+  Category ||--o{ Category : parent
+  Category ||--o{ Auction : classifies
+  Auction ||--o{ Bid : has
+  Auction ||--o{ Watchlist : listed
+  Auction ||--o{ Transaction : settles
+  Auction ||--o{ Review : rated_on

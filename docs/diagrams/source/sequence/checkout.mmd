@@ -1,0 +1,24 @@
+sequenceDiagram
+  participant W as Winner (Browser)
+  participant FE as Next.js Frontend
+  participant API as Express API
+  participant ST as Stripe
+  participant DB as PostgreSQL
+
+  W->>FE: Open /checkout/:auctionId
+  FE->>API: POST /api/payments/create-checkout-session
+  API->>DB: Validate winner + amount
+  alt Stripe configured
+    API->>ST: Create Checkout Session
+    ST-->>API: session.url
+    API->>DB: Store pending Transaction
+    API-->>FE: { url, mode: stripe }
+    FE->>ST: Redirect to Checkout
+    ST-->>W: Pay
+    ST-->>API: webhook / session-status paid
+    API->>DB: placeInEscrow (held)
+  else Dev payments allowed
+    API->>DB: placeInEscrow (held, simulated)
+    API-->>FE: { mode: dev, success url }
+  end
+  FE-->>W: Show escrow held status

@@ -1,0 +1,196 @@
+<mxfile host="app.diagrams.net" modified="2026-11-02T11:00:00.000Z" agent="BidOn" version="22.1.0" pages="6">
+  <diagram id="arch" name="3.1 Architecture">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="clients" value="Clients" style="swimlane;rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="360" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="b" value="Buyer Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="clients">
+          <mxGeometry x="20" y="40" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="s" value="Seller Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="clients">
+          <mxGeometry x="130" y="40" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="a" value="Admin Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="clients">
+          <mxGeometry x="240" y="40" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="render" value="Render Singapore" style="swimlane;rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="280" y="180" width="520" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="fe" value="bid-on.onrender.com&#xa;Next.js 15 Frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="render">
+          <mxGeometry x="160" y="50" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="api" value="bid-on-api.onrender.com&#xa;Express + Prisma API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="render">
+          <mxGeometry x="160" y="140" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="db" value="bid-on-db&#xa;PostgreSQL 16" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="render">
+          <mxGeometry x="180" y="220" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="stripe" value="Stripe Checkout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="860" y="320" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="mail" value="Email provider /&#xa;console fallback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="860" y="400" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="clients" target="fe"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="HTTPS REST + Socket.IO" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="fe" target="api"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="api" target="db"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="api" target="stripe"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="api" target="mail"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="deploy" name="3.2 Deployment">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="700">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="u" value="Users" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="cloud" value="Render.com · Singapore" style="swimlane;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="80" width="520" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="fe2" value="Web: bid-on&#xa;Next.js" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="cloud">
+          <mxGeometry x="40" y="60" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="api2" value="Web: bid-on-api&#xa;Express" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="cloud">
+          <mxGeometry x="220" y="60" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg" value="Postgres: bid-on-db&#xa;Private network" style="shape=cylinder3;whiteSpace=wrap;html=1;size=12;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="cloud">
+          <mxGeometry x="180" y="180" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="gh" value="GitHub&#xa;eauctionproject2025/bid-on" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="100" width="180" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="st" value="Stripe API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="820" y="280" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="d1" value="HTTPS" style="endArrow=block;html=1;" edge="1" parent="1" source="u" target="fe2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d2" value="API + WS" style="endArrow=block;html=1;" edge="1" parent="1" source="fe2" target="api2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d3" value="DATABASE_URL" style="endArrow=block;html=1;" edge="1" parent="1" source="api2" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d4" value="Auto deploy" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="gh" target="fe2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d5" value="Auto deploy" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="gh" target="api2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d6" style="endArrow=block;html=1;" edge="1" parent="1" source="api2" target="st"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="dfd0" name="3.3 DFD Context">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" page="1" pageWidth="1000" pageHeight="700">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="sys" value="Bid On&#xa;e-Auction System" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="380" y="250" width="180" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="by" value="Buyer" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="se" value="Seller" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="260" width="100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="ad" value="Admin" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="420" width="100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="str" value="Stripe" style="shape=cylinder3;whiteSpace=wrap;html=1;size=10;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="760" y="180" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="em" value="Email Service" style="shape=cylinder3;whiteSpace=wrap;html=1;size=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="760" y="340" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="f1" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="by" target="sys"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="f2" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="se" target="sys"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="f3" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="ad" target="sys"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="f4" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="sys" target="str"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="f5" style="endArrow=block;html=1;" edge="1" parent="1" source="sys" target="em"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="dfdl0" name="3.3b DFD Level-0">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" page="1" pageWidth="1200" pageHeight="900">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p1" value="1.0 Authenticate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="200" y="80" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="p2" value="2.0 Manage Listings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="400" y="80" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3" value="3.0 Moderate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="600" y="80" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="p4" value="4.0 Process Bids" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="200" y="200" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="p5" value="5.0 Settle Payments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="400" y="200" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="p6" value="6.0 Notify" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="600" y="200" width="140" height="50" as="geometry"/></mxCell>
+        <mxCell id="d1" value="D1 Users" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1"><mxGeometry x="80" y="360" width="120" height="40" as="geometry"/></mxCell>
+        <mxCell id="d2" value="D2 Auctions" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1"><mxGeometry x="240" y="360" width="120" height="40" as="geometry"/></mxCell>
+        <mxCell id="d3" value="D3 Bids" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1"><mxGeometry x="400" y="360" width="120" height="40" as="geometry"/></mxCell>
+        <mxCell id="d4" value="D4 Transactions" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1"><mxGeometry x="560" y="360" width="130" height="40" as="geometry"/></mxCell>
+        <mxCell id="d5" value="D5 Notifications" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1"><mxGeometry x="740" y="360" width="130" height="40" as="geometry"/></mxCell>
+        <mxCell id="x1" style="endArrow=block;html=1;" edge="1" parent="1" source="p1" target="d1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="x2" style="endArrow=block;html=1;" edge="1" parent="1" source="p2" target="d2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="x3" style="endArrow=block;html=1;" edge="1" parent="1" source="p3" target="d2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="x4" style="endArrow=block;html=1;" edge="1" parent="1" source="p4" target="d3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="x5" style="endArrow=block;html=1;" edge="1" parent="1" source="p5" target="d4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="x6" style="endArrow=block;html=1;" edge="1" parent="1" source="p6" target="d5"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="comp" name="3.7 Components">
+    <mxGraphModel dx="1100" dy="700" grid="1" gridSize="10" page="1" pageWidth="1100" pageHeight="700">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="fe" value="Frontend" style="swimlane;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="280" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="pages" value="App Router pages" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="fe"><mxGeometry x="40" y="40" width="200" height="40" as="geometry"/></mxCell>
+        <mxCell id="hooks" value="TanStack Query hooks" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="fe"><mxGeometry x="40" y="100" width="200" height="40" as="geometry"/></mxCell>
+        <mxCell id="store" value="Zustand auth store" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="fe"><mxGeometry x="40" y="160" width="200" height="40" as="geometry"/></mxCell>
+        <mxCell id="sockc" value="Socket.IO client" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="fe"><mxGeometry x="40" y="220" width="200" height="40" as="geometry"/></mxCell>
+        <mxCell id="be" value="Backend" style="swimlane;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="400" y="40" width="320" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="routes" value="Express routers" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="40" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="auth" value="JWT + cookie auth" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="90" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="bidl" value="Bidding + row lock" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="140" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="esc" value="Escrow service" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="190" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="jobs" value="Auction ender job" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="240" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="socks" value="Socket.IO server" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="290" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="prisma" value="Prisma Client" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="be"><mxGeometry x="40" y="340" width="240" height="36" as="geometry"/></mxCell>
+        <mxCell id="db" value="PostgreSQL" style="shape=cylinder3;whiteSpace=wrap;html=1;size=12;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="820" y="220" width="140" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="c1" value="REST" style="endArrow=block;html=1;" edge="1" parent="1" source="hooks" target="routes"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c2" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="sockc" target="socks"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c3" style="endArrow=block;html=1;" edge="1" parent="1" source="prisma" target="db"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="uc" name="3.8 Use Case">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" page="1" pageWidth="1200" pageHeight="800">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="buyer" value="Buyer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="200" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="seller" value="Seller" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="360" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="520" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="sys" value="Bid On e-Auction System" style="swimlane;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="160" y="40" width="900" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc1" value="Register / Login / Verify" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="40" y="40" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc2" value="Browse / Search" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="260" y="40" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc3" value="Place real-time bid" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="460" y="40" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc5" value="Pay checkout / escrow" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="660" y="40" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc7" value="Create listing" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="40" y="160" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc9" value="Approve / reject" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="260" y="160" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc10" value="KPIs / CSV / suspend" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="460" y="160" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="uc11" value="Resolve disputes" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="sys"><mxGeometry x="680" y="160" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="u1" style="endArrow=block;html=1;" edge="1" parent="1" source="buyer" target="uc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u2" style="endArrow=block;html=1;" edge="1" parent="1" source="buyer" target="uc3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u3" style="endArrow=block;html=1;" edge="1" parent="1" source="buyer" target="uc5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u4" style="endArrow=block;html=1;" edge="1" parent="1" source="seller" target="uc7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u5" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="uc9"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u6" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="uc10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="u7" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="uc11"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph Internet
+    U[Users]
+  end
+  subgraph Render_Cloud["Render.com · Singapore"]
+    FE[Web Service: bid-on\nNode / Next.js]
+    API[Web Service: bid-on-api\nNode / Express]
+    PG[(Postgres: bid-on-db\nPrivate network)]
+  end
+  GH[GitHub: eauctionproject2025/bid-on]
+  ST[Stripe API]
+
+  U -->|HTTPS| FE
+  FE -->|HTTPS API + WS| API
+  API -->|Internal DATABASE_URL| PG
+  API -->|HTTPS| ST
+  GH -->|Auto deploy master| FE
+  GH -->|Auto deploy master| API

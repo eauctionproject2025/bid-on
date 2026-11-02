@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph Clients
+    B[Buyer Browser]
+    S[Seller Browser]
+    A[Admin Browser]
+  end
+
+  subgraph Render["Render Singapore"]
+    FE["bid-on.onrender.com\nNext.js 15 Frontend"]
+    API["bid-on-api.onrender.com\nExpress + Prisma API"]
+    DB[("bid-on-db\nPostgreSQL 16")]
+  end
+
+  EXT[Stripe Checkout]
+  MAIL[Email provider / console fallback]
+
+  B --> FE
+  S --> FE
+  A --> FE
+  FE -->|HTTPS REST + Socket.IO| API
+  API --> DB
+  API --> EXT
+  API --> MAIL

@@ -1,0 +1,19 @@
+sequenceDiagram
+  actor U as User
+  participant FE as Next.js Frontend
+  participant API as Express API
+  participant DB as PostgreSQL
+  U->>FE: Submit email/password
+  FE->>API: POST /api/auth/login
+  API->>DB: Find user by email
+  DB-->>API: User + passwordHash
+  API->>API: bcrypt.compare
+  alt credentials valid and verified
+    API->>API: Sign JWT
+    API-->>FE: Set httpOnly cookie + JSON user
+    FE->>FE: Persist session in auth store
+    FE-->>U: Redirect to dashboard
+  else invalid or unverified
+    API-->>FE: 401/403 error
+    FE-->>U: Show error message
+  end

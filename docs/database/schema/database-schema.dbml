@@ -1,0 +1,200 @@
+// Bid On — DBML (dbdiagram.io / dbdocs compatible)
+// Logical mirror of Prisma/PostgreSQL production schema
+
+Enum Role {
+  buyer
+  seller
+  admin
+}
+
+Enum AuctionStatus {
+  pending
+  live
+  ended
+  cancelled
+  sold
+}
+
+Enum TransactionStatus {
+  pending
+  held
+  disputed
+  completed
+  failed
+  refunded
+}
+
+Enum VerificationStatus {
+  none
+  pending
+  approved
+  rejected
+}
+
+Enum NotificationType {
+  outbid
+  ending_soon
+  won
+  approved
+  rejected
+  general
+}
+
+Table User {
+  id CHAR(25) [pk, note: 'cuid']
+  name varchar [not null]
+  email varchar [unique, not null]
+  passwordHash varchar [not null]
+  role Role [not null, default: 'buyer']
+  verified boolean [not null, default: false]
+  otpCode varchar
+  otpExpiresAt datetime
+  resetOtpCode varchar
+  resetOtpExpiresAt datetime
+  phone varchar
+  address text
+  suspended boolean [not null, default: false]
+  ratingAvg float [not null, default: 0]
+  ratingCount int [not null, default: 0]
+  kycStatus VerificationStatus [not null, default: 'none']
+  kycFullName varchar
+  kycDocumentType varchar
+  kycDocumentNumber varchar
+  kycDocumentUrl varchar
+  kycSubmittedAt datetime
+  kycReviewedAt datetime
+  kycRejectReason text
+  bankStatus VerificationStatus [not null, default: 'none']
+  bankAccountName varchar
+  bankName varchar
+  bankAccountNumber varchar
+  bankBranch varchar
+  bankRoutingNumber varchar
+  bankSubmittedAt datetime
+  bankReviewedAt datetime
+  bankRejectReason text
+  createdAt datetime [not null, default: `now()`]
+  updatedAt datetime [not null]
+
+  Note: 'Identity, RBAC, KYC/bank compliance, ratings'
+}
+
+Table Category {
+  id CHAR(25) [pk]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  parentId CHAR(25) [ref: > Category.id]
+
+  Note: 'Hierarchical catalogue'
+}
+
+Table Auction {
+  id CHAR(25) [pk]
+  sellerId CHAR(25) [not null, ref: > User.id]
+  categoryId CHAR(25) [not null, ref: > Category.id]
+  title varchar [not null]
+  description text [not null]
+  images json [not null]
+  startPrice decimal(12,2) [not null]
+  reservePrice decimal(12,2)
+  maxPriceCap decimal(12,2)
+  currentBid decimal(12,2) [not null, default: 0]
+  minBidIncrement decimal(12,2) [not null, default: 1]
+  bidCount int [not null, default: 0]
+  status AuctionStatus [not null, default: 'pending']
+  startsAt datetime
+  endsAt datetime [not null]
+  winnerId CHAR(25) [ref: > User.id]
+  rejectReason text
+  createdAt datetime [not null]
+  updatedAt datetime [not null]
+
+  indexes {
+    status
+    endsAt
+    categoryId
+  }
+
+  Note: 'Listing, pricing, clock, lifecycle'
+}
+
+Table Bid {
+  id CHAR(25) [pk]
+  auctionId CHAR(25) [not null, ref: > Auction.id]
+  bidderId CHAR(25) [not null, ref: > User.id]
+  amount decimal(12,2) [not null]
+  createdAt datetime [not null]
+
+  indexes {
+    auctionId
+    bidderId
+  }
+}
+
+Table Watchlist {
+  id CHAR(25) [pk]
+  userId CHAR(25) [not null, ref: > User.id]
+  auctionId CHAR(25) [not null, ref: > Auction.id]
+  createdAt datetime [not null]
+
+  indexes {
+    (userId, auctionId) [unique]
+  }
+}
+
+Table Notification {
+  id CHAR(25) [pk]
+  userId CHAR(25) [not null, ref: > User.id]
+  type NotificationType [not null]
+  message text [not null]
+  read boolean [not null, default: false]
+  meta json
+  createdAt datetime [not null]
+
+  indexes {
+    (userId, read)
+  }
+}
+
+Table Transaction {
+  id CHAR(25) [pk]
+  auctionId CHAR(25) [not null, ref: > Auction.id]
+  buyerId CHAR(25) [not null, ref: > User.id]
+  sellerId CHAR(25) [not null, ref: > User.id]
+  amount decimal(12,2) [not null]
+  stripeSessionId varchar [unique]
+  stripePaymentId varchar
+  status TransactionStatus [not null, default: 'pending']
+  heldAt datetime
+  releaseDueAt datetime
+  shippedAt datetime
+  releasedAt datetime
+  disputeReason text
+  disputedAt datetime
+  resolvedAt datetime
+  resolveNote text
+  createdAt datetime [not null]
+  updatedAt datetime [not null]
+
+  indexes {
+    (auctionId, status)
+    buyerId
+    sellerId
+  }
+
+  Note: 'Escrow payment ledger'
+}
+
+Table Review {
+  id CHAR(25) [pk]
+  auctionId CHAR(25) [not null, ref: > Auction.id]
+  fromUserId CHAR(25) [not null, ref: > User.id]
+  toUserId CHAR(25) [not null, ref: > User.id]
+  rating int [not null]
+  comment text
+  createdAt datetime [not null]
+
+  indexes {
+    (auctionId, fromUserId) [unique]
+  }
+}

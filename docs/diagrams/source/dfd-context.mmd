@@ -1,0 +1,13 @@
+flowchart LR
+  Buyer((Buyer))
+  Seller((Seller))
+  Admin((Admin))
+  SYS[Bid On e-Auction System]
+  Stripe[(Stripe)]
+  Email[(Email Service)]
+
+  Buyer <--> SYS
+  Seller <--> SYS
+  Admin <--> SYS
+  SYS <--> Stripe
+  SYS --> Email

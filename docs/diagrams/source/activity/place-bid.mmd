@@ -1,0 +1,14 @@
+flowchart TD
+  A[Buyer opens live auction] --> B{Authenticated + KYC/bank approved?}
+  B -->|No| C[Block with verification required]
+  B -->|Yes| D[Enter bid amount]
+  D --> E[POST /api/auctions/:id/bids]
+  E --> F[Lock auction row FOR UPDATE]
+  F --> G{status=live and endsAt > now?}
+  G -->|No| H[Reject bid]
+  G -->|Yes| I{amount >= minimumNextBid?}
+  I -->|No| H
+  I -->|Yes| J[Insert Bid + update currentBid/bidCount]
+  J --> K[Emit Socket.IO bid:new]
+  K --> L[Notify previous top bidder if outbid]
+  L --> M[Return 201 + updated auction]

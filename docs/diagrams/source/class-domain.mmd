@@ -1,0 +1,49 @@
+classDiagram
+  direction TB
+  class User {
+    +String id
+    +String email
+    +Role role
+    +VerificationStatus kycStatus
+    +VerificationStatus bankStatus
+  }
+  class Category {
+    +String id
+    +String slug
+  }
+  class Auction {
+    +String id
+    +Decimal startPrice
+    +Decimal currentBid
+    +AuctionStatus status
+    +DateTime endsAt
+  }
+  class Bid {
+    +String id
+    +Decimal amount
+    +DateTime createdAt
+  }
+  class Watchlist
+  class Notification
+  class Transaction {
+    +Decimal amount
+    +TransactionStatus status
+    +String stripeSessionId
+  }
+  class Review {
+    +Int rating
+  }
+  User "1" --> "*" Auction : sells
+  User "0..1" --> "*" Auction : wins
+  User "1" --> "*" Bid : places
+  Category "1" --> "*" Auction
+  Auction "1" --> "*" Bid
+  User "1" --> "*" Watchlist
+  Auction "1" --> "*" Watchlist
+  User "1" --> "*" Notification
+  Auction "1" --> "*" Transaction
+  User "1" --> "*" Transaction : buyer
+  User "1" --> "*" Transaction : seller
+  Auction "1" --> "*" Review
+  User "1" --> "*" Review : from
+  User "1" --> "*" Review : to

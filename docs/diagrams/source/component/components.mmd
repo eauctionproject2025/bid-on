@@ -1,0 +1,32 @@
+flowchart TB
+  subgraph Frontend
+    Pages[App Router pages]
+    Hooks[TanStack Query hooks]
+    Store[Zustand auth store]
+    SockC[Socket.IO client]
+  end
+  subgraph Backend
+    Routes[Express routers]
+    Auth[JWT + cookie auth]
+    BidL[Bidding + row lock]
+    Escrow[Escrow service]
+    Jobs[Auction ender job]
+    SockS[Socket.IO server]
+    Prisma[Prisma Client]
+  end
+  DB[(PostgreSQL)]
+
+  Pages --> Hooks
+  Pages --> Store
+  Pages --> SockC
+  Hooks -->|REST| Routes
+  SockC <--> SockS
+  Routes --> Auth
+  Routes --> BidL
+  Routes --> Escrow
+  Routes --> Prisma
+  Jobs --> Prisma
+  BidL --> Prisma
+  Escrow --> Prisma
+  Prisma --> DB
+  SockS --> Routes

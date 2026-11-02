@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bid On — Diagram Viewer</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 0; background: #f4f4f4; color: #222; }
+    header { background: #1a1a2e; color: #fff; padding: 1rem 1.5rem; }
+    header h1 { margin: 0 0 .35rem; font-size: 1.35rem; }
+    header p { margin: 0; opacity: .85; font-size: .95rem; }
+    nav { display: flex; flex-wrap: wrap; gap: .5rem; padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 2; }
+    nav a { text-decoration: none; color: #1a1a2e; background: #e8eef7; padding: .35rem .7rem; border-radius: 4px; font-size: .85rem; }
+    nav a:hover { background: #c9d7ef; }
+    section { background: #fff; margin: 1rem 1.5rem; padding: 1rem 1.25rem 1.5rem; border: 1px solid #ddd; }
+    section h2 { margin-top: 0; font-size: 1.1rem; }
+    section .meta { color: #555; font-size: .85rem; margin-bottom: .75rem; }
+    section img { max-width: 100%; height: auto; border: 1px solid #ccc; background: #fff; }
+    footer { padding: 1rem 1.5rem 2rem; color: #666; font-size: .85rem; }
+    code { background: #eee; padding: 0 .25rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bid On — All diagrams</h1>
+    <p>Rendered PNG previews. Editable sources are under <code>docs/diagrams/source/</code> (.mmd / .puml / .drawio).</p>
+  </header>
+  <nav>
+    <a href="#architecture">Architecture</a>
+    <a href="#deployment">Deployment</a>
+    <a href="#dfd-context">DFD Context</a>
+    <a href="#dfd-level0">DFD Level-0</a>
+    <a href="#erd">ERD</a>
+    <a href="#place-bid">Place bid</a>
+    <a href="#checkout">Checkout</a>
+    <a href="#login">Login</a>
+    <a href="#components">Components</a>
+    <a href="#use-case">Use case</a>
+    <a href="#class-domain">Class</a>
+  </nav>
+
+  <section id="architecture">
+    <h2>Figure 3.1 — Architecture</h2>
+    <p class="meta">Edit: <code>source/architecture.mmd</code> · also in <code>source/drawio/bid-on-diagrams.drawio</code> (page 3.1)</p>
+    <img src="exports/png/architecture.png" alt="Architecture" />
+  </section>
+  <section id="deployment">
+    <h2>Figure 3.2 — Deployment</h2>
+    <p class="meta">Edit: <code>source/deployment/deployment.mmd</code></p>
+    <img src="exports/png/deployment_deployment.png" alt="Deployment" />
+  </section>
+  <section id="dfd-context">
+    <h2>Figure 3.3 — DFD Context</h2>
+    <p class="meta">Edit: <code>source/dfd-context.mmd</code></p>
+    <img src="exports/png/dfd-context.png" alt="DFD Context" />
+  </section>
+  <section id="dfd-level0">
+    <h2>Figure 3.3b — DFD Level-0</h2>
+    <p class="meta">Edit: <code>source/dfd-level0.mmd</code></p>
+    <img src="exports/png/dfd-level0.png" alt="DFD Level-0" />
+  </section>
+  <section id="erd">
+    <h2>Figure 3.4 — ERD</h2>
+    <p class="meta">Edit: <code>source/erd/erd.mmd</code> or <code>../database/erd/database-erd.drawio</code></p>
+    <img src="exports/png/erd_erd.png" alt="ERD" />
+  </section>
+  <section id="place-bid">
+    <h2>Figure 3.5 — Place bid activity</h2>
+    <p class="meta">Edit: <code>source/activity/place-bid.mmd</code></p>
+    <img src="exports/png/activity_place-bid.png" alt="Place bid" />
+  </section>
+  <section id="checkout">
+    <h2>Figure 3.6 — Checkout sequence</h2>
+    <p class="meta">Edit: <code>source/sequence/checkout.mmd</code></p>
+    <img src="exports/png/sequence_checkout.png" alt="Checkout sequence" />
+  </section>
+  <section id="login">
+    <h2>Figure 3.6b — Login sequence</h2>
+    <p class="meta">Edit: <code>source/sequence/login.mmd</code></p>
+    <img src="exports/png/sequence_login.png" alt="Login sequence" />
+  </section>
+  <section id="components">
+    <h2>Figure 3.7 — Components</h2>
+    <p class="meta">Edit: <code>source/component/components.mmd</code></p>
+    <img src="exports/png/component_components.png" alt="Components" />
+  </section>
+  <section id="use-case">
+    <h2>Figure 3.8 — Use case</h2>
+    <p class="meta">Edit: <code>source/use-case.puml</code> or <code>source/use-case.mmd</code></p>
+    <img src="exports/png/use-case.png" alt="Use case" />
+  </section>
+  <section id="class-domain">
+    <h2>Figure 3.9 — Domain class</h2>
+    <p class="meta">Edit: <code>source/class-domain.mmd</code></p>
+    <img src="exports/png/class-domain.png" alt="Class domain" />
+  </section>
+
+  <footer>
+    Re-export after edits: <code>python docs/final-report/render_all_diagrams.py</code>
+  </footer>
+</body>
+</html>

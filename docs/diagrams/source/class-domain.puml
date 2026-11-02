@@ -1,0 +1,59 @@
+@startuml
+skinparam classAttributeIconSize 0
+title Bid On Domain Class Overview
+
+enum Role { buyer seller admin }
+enum AuctionStatus { pending live ended cancelled sold }
+enum TransactionStatus { pending held disputed completed failed refunded }
+enum VerificationStatus { none pending approved rejected }
+
+class User {
+  +id: String
+  +email: String
+  +role: Role
+  +kycStatus: VerificationStatus
+  +bankStatus: VerificationStatus
+}
+class Category {
+  +id: String
+  +slug: String
+}
+class Auction {
+  +id: String
+  +title: String
+  +startPrice: Decimal
+  +currentBid: Decimal
+  +status: AuctionStatus
+  +endsAt: DateTime
+}
+class Bid {
+  +id: String
+  +amount: Decimal
+  +createdAt: DateTime
+}
+class Watchlist
+class Notification
+class Transaction {
+  +amount: Decimal
+  +status: TransactionStatus
+  +stripeSessionId: String
+}
+class Review {
+  +rating: Int
+}
+
+User "1" -- "*" Auction : sells
+User "0..1" -- "*" Auction : wins
+User "1" -- "*" Bid : places
+Category "1" -- "*" Auction
+Auction "1" -- "*" Bid
+User "1" -- "*" Watchlist
+Auction "1" -- "*" Watchlist
+User "1" -- "*" Notification
+Auction "1" -- "*" Transaction
+User "1" -- "*" Transaction : buyer
+User "1" -- "*" Transaction : seller
+Auction "1" -- "*" Review
+User "1" -- "*" Review : from
+User "1" -- "*" Review : to
+@enduml
