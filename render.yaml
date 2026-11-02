@@ -1,8 +1,26 @@
-# Bid On API + PostgreSQL on Render.
-# Frontend stays on Vercel. Dashboard → New → Blueprint → this repo.
-# Both resources must stay in the same region so the API can use the private database URL.
+# Bid On on Render: full website + API + Postgres (Singapore).
+# Public site: https://bid-on.onrender.com  ·  API: https://bid-on-api.onrender.com
 
 services:
+  - type: web
+    name: bid-on
+    runtime: node
+    plan: free
+    region: singapore
+    branch: master
+    rootDir: frontend
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://bid-on-api.onrender.com
+
   - type: web
     name: bid-on-api
     runtime: node
@@ -29,9 +47,8 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
-      # Set to the Vercel origin, no trailing slash. Prompted when the Blueprint is created.
       - key: FRONTEND_URL
-        sync: false
+        value: https://bid-on.onrender.com
       # Free web services have no persistent disk. Uploaded images reset on each deploy.
       - key: UPLOAD_DIR
         value: uploads

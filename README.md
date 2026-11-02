@@ -6,10 +6,10 @@ Full-stack e-auction platform (**Next.js** + **Express** + **PostgreSQL**) with 
 
 | Service | URL |
 |---------|-----|
-| API (Render) | https://bid-on-api.onrender.com |
+| **Website** | https://bid-on.onrender.com |
+| API | https://bid-on-api.onrender.com |
 | Health | https://bid-on-api.onrender.com/api/health |
 | API docs | https://bid-on-api.onrender.com/api/docs |
-| Dashboard | https://dashboard.render.com/web/srv-dbk0u7ec6qcc73d6vk40 |
 
 > Free Render instances sleep after ~15 minutes idle — the first request after wake can take up to a minute.
 
