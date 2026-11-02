@@ -34,7 +34,7 @@ import {
   needsVerification,
   VerificationRequired,
 } from "@/components/VerificationRequired";
-import { useSocket } from "@/lib/socket";
+import { joinAuctionRoom, leaveAuctionRoom, useSocket } from "@/lib/socket";
 import { bidSchema, BidValues, reviewSchema, ReviewValues } from "@/lib/schemas";
 import { toastFromError, toastSuccess, toastValidationErrors } from "@/lib/toast";
 import { SellerEditPanel } from "@/components/SellerEditPanel";
@@ -69,16 +69,15 @@ export default function AuctionDetailPage() {
   useEffect(() => {
     if (!auction) return;
     const increment = Math.max(1, Number(auction.minBidIncrement) || 1);
-    const leading =
-      Number(auction.currentBid) > 0
-        ? Number(auction.currentBid)
-        : Number(auction.startPrice);
-    bidForm.reset({ amount: leading + increment });
+    const current = Number(auction.currentBid);
+    const start = Number(auction.startPrice);
+    const minBid = current > 0 ? current + increment : start;
+    bidForm.reset({ amount: minBid });
   }, [auction?.id, auction?.currentBid, auction?.startPrice, auction?.minBidIncrement]);
 
   useEffect(() => {
     if (!socket || !id) return;
-    socket.emit("auction:join", id);
+    joinAuctionRoom(id);
     const onBid = () => {
       qc.invalidateQueries({ queryKey: queryKeys.auction(id) });
     };
@@ -86,7 +85,7 @@ export default function AuctionDetailPage() {
     socket.on("bid:new", onBid);
     socket.on("auction:ended", onEnd);
     return () => {
-      socket.emit("auction:leave", id);
+      leaveAuctionRoom(id);
       socket.off("bid:new", onBid);
       socket.off("auction:ended", onEnd);
     };
@@ -113,7 +112,8 @@ export default function AuctionDetailPage() {
     Number(auction.currentBid) > 0
       ? Number(auction.currentBid)
       : Number(auction.startPrice);
-  const minBid = leadingPrice + increment;
+  const minBid =
+    Number(auction.currentBid) > 0 ? leadingPrice + increment : leadingPrice;
   const isEnded = ["ended", "sold"].includes(auction.status);
   const isWinner = Boolean(user && auction.winner?.id === user.id);
   const fundsSettled = Boolean(
@@ -194,7 +194,7 @@ export default function AuctionDetailPage() {
             )}
           </p>
           <p className="mt-3 text-sm text-[var(--brand-hot)]">
-            <Countdown endsAt={auction.endsAt} />
+            <Countdown endsAt={auction.endsAt} onEnded={() => void refetch()} />
           </p>
           <p className="mt-1 text-xs text-background/50">
             {auction.bidCount} bids · Seller {auction.seller?.name}

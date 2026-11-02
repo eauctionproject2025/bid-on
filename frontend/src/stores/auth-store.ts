@@ -22,13 +22,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   refresh: async () => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) {
-      set({ user: null, loading: false });
-      return;
-    }
     try {
+      // Cookie session and/or Bearer token — always ask /me.
       const data = await api<{ user: User }>("/api/auth/me");
       set({ user: data.user, loading: false });
     } catch {

@@ -25,6 +25,8 @@ router.post(
     await assertReadyToTransact(bidderId, "bid");
 
     const result = await prisma.$transaction(async (tx) => {
+      // Row lock prevents concurrent bids from undercutting currentBid.
+      await tx.$executeRaw`SELECT id FROM "Auction" WHERE id = ${auctionId} FOR UPDATE`;
       const auction = await tx.auction.findUnique({ where: { id: auctionId } });
       if (!auction) throw new Error("Auction not found");
       if (auction.status !== "live") throw new Error("Auction is not live");

@@ -55,15 +55,25 @@ function VerifyInner() {
 
   useEffect(() => {
     if (!token || tried.current) return;
+    const gateKey = `verified:${token}`;
+    if (sessionStorage.getItem(gateKey) === "1") {
+      router.replace("/dashboard");
+      return;
+    }
     tried.current = true;
 
     (async () => {
       try {
         const data = await verifyMutation.mutateAsync({ token });
+        sessionStorage.setItem(gateKey, "1");
         setSession(data.token, data.user);
         toastSuccess("Email verified successfully");
         router.replace("/dashboard");
       } catch (err) {
+        if (sessionStorage.getItem(gateKey) === "1") {
+          router.replace("/dashboard");
+          return;
+        }
         const msg = toastFromError(err, "Verification failed");
         setErrorMsg(msg);
         setStatus("error");

@@ -6,23 +6,26 @@ import { ExternalLink, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useThemeStore } from "@/stores/theme-store";
-import { toastSuccess } from "@/lib/toast";
+import { toastError, toastSuccess } from "@/lib/toast";
 
-function exportCsv() {
+async function exportCsv() {
   const token = localStorage.getItem("token");
-  fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/admin/reports/csv`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-    .then((r) => r.text())
-    .then((csv) => {
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "auctions-report.csv";
-      a.click();
-    });
+  const { API_URL } = await import("@/lib/api");
+  const res = await fetch(`${API_URL}/api/admin/reports/csv`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Export failed");
+  }
+  const csv = await res.text();
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "auctions-report.csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function AdminTopBar() {
@@ -36,7 +39,13 @@ export function AdminTopBar() {
     <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4">
       <p className="text-sm font-medium tracking-tight">Operations</p>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={exportCsv}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            void exportCsv().catch(() => toastError("CSV export failed"));
+          }}
+        >
           Export CSV
         </Button>
         <Button

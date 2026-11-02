@@ -9,7 +9,7 @@ function roundMoney(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-/** Lowest acceptable next bid. The seller's increment sits above the leading price. */
+/** Lowest acceptable next bid. Opening bid may equal start price; later bids add the increment. */
 export function minimumNextBid(auction: {
   currentBid: Money;
   startPrice: Money;
@@ -17,6 +17,6 @@ export function minimumNextBid(auction: {
 }) {
   const increment = Math.max(0.01, asNumber(auction.minBidIncrement, 1) || 1);
   const current = asNumber(auction.currentBid, 0);
-  const leading = current > 0 ? current : asNumber(auction.startPrice, 0);
-  return roundMoney(leading + increment);
+  if (current <= 0) return roundMoney(asNumber(auction.startPrice, 0));
+  return roundMoney(current + increment);
 }

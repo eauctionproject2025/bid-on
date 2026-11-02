@@ -123,12 +123,19 @@ export function EscrowPanel({
               <Button
                 variant="ghost"
                 className="w-full"
-                disabled={busy}
+                disabled={busy || reason.trim().length < 10}
                 onClick={async () => {
+                  if (reason.trim().length < 10) {
+                    toastFromError(
+                      new Error("Please describe the issue (at least 10 characters)"),
+                      "Dispute reason too short"
+                    );
+                    return;
+                  }
                   try {
                     await dispute.mutateAsync({
                       id: escrow.id,
-                      body: { reason },
+                      body: { reason: reason.trim() },
                     });
                     toastSuccess("Dispute opened");
                     setShowDispute(false);

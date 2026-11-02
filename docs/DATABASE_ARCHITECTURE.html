@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bid On — Database Architecture</title>
+  <style>
+    :root {
+      --ink: #142033;
+      --muted: #5a6b82;
+      --line: #d7dee8;
+      --brand: #0f6e56;
+      --paper: #ffffff;
+      --soft: #f4f7fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-size: 11pt;
+    }
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 40px 72px;
+    }
+    h1 { font-size: 28pt; margin: 0 0 8px; letter-spacing: -0.02em; }
+    h2 {
+      font-size: 14pt;
+      margin: 36px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--brand);
+      color: var(--brand);
+    }
+    h3 { font-size: 12pt; margin: 22px 0 8px; }
+    p, li { color: var(--ink); }
+    .muted { color: var(--muted); }
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      padding: 16px 18px;
+      margin: 18px 0 28px;
+    }
+    .meta div span { display: block; font-size: 9pt; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); }
+    code, .mono {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 9.5pt;
+      background: var(--soft);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .box {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 14px 16px;
+      margin: 12px 0 18px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 9.5pt;
+    }
+    .footer {
+      margin-top: 48px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9pt;
+    }
+    @media print {
+      .page { padding: 0; max-width: none; }
+      a { color: inherit; text-decoration: none; }
+      h2 { break-after: avoid; }
+      table, .box, .meta { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <p class="muted" style="text-transform:uppercase;letter-spacing:0.14em;font-size:9pt;margin:0 0 8px;">Technical architecture · Management submission</p>
+    <h1>Bid On — Database Architecture</h1>
+    <p class="muted">Online auction platform · PostgreSQL system of record</p>
+
+    <div class="meta">
+      <div><span>System</span>Bid On (Next.js + Express + Prisma)</div>
+      <div><span>Database</span>PostgreSQL 16 on Render (`bid-on-db`)</div>
+      <div><span>Live website</span>https://bid-on.onrender.com</div>
+      <div><span>Live API</span>https://bid-on-api.onrender.com</div>
+      <div><span>Document version</span>1.1 · November 2026</div>
+      <div><span>Editable sources</span>DATABASE_ARCHITECTURE.md / .html</div>
+    </div>
+
+    <h2>1. Purpose</h2>
+    <p>
+      This document describes the logical and physical database design for Bid On:
+      entities, relationships, money and escrow rules, indexes, and hosting notes.
+      It is suitable for management review, audit, and engineering handoff.
+    </p>
+
+    <h2>2. System context</h2>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>Next.js 15</td><td>Buyer / seller / admin UI</td></tr>
+        <tr><td>API</td><td>Express + Prisma</td><td>Auth, auctions, bids, payments, admin</td></tr>
+        <tr><td>Database</td><td>PostgreSQL 16</td><td>System of record</td></tr>
+        <tr><td>Realtime</td><td>Socket.IO</td><td>Live bids &amp; notifications</td></tr>
+        <tr><td>Payments</td><td>Stripe Checkout + escrow ledger</td><td>Winner payment held until release</td></tr>
+      </tbody>
+    </table>
+    <div class="box">Browser → bid-on.onrender.com (Next.js)
+        → bid-on-api.onrender.com (Express)
+        → PostgreSQL (bid-on-db, Singapore)
+        ↘ Stripe  ·  Socket.IO</div>
+
+    <h2>3. Design principles</h2>
+    <ol>
+      <li><strong>Single source of truth</strong> — auction, bid, escrow, and KYC state live in PostgreSQL.</li>
+      <li><strong>Role-based access</strong> — <code>buyer</code>, <code>seller</code>, <code>admin</code> on <code>User.role</code>.</li>
+      <li><strong>Listing moderation</strong> — lots start <code>pending</code> until admin approval.</li>
+      <li><strong>Escrow before settlement</strong> — winner payment recorded as <code>held</code> before release.</li>
+      <li><strong>Money as Decimal</strong> — <code>Decimal(12,2)</code> for prices and bids.</li>
+    </ol>
+
+    <h2>4. Entity catalogue</h2>
+
+    <h3>4.1 User</h3>
+    <p>Identity, roles, email verification, password reset OTPs, KYC and bank verification, rating aggregates.</p>
+    <table>
+      <thead><tr><th>Group</th><th>Fields (summary)</th></tr></thead>
+      <tbody>
+        <tr><td>Identity</td><td>id, name, email (unique), passwordHash</td></tr>
+        <tr><td>Access</td><td>role, verified, suspended</td></tr>
+        <tr><td>KYC / Bank</td><td>status enums + document / account fields + review timestamps</td></tr>
+        <tr><td>Reputation</td><td>ratingAvg, ratingCount</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Category</h3>
+    <p>Hierarchical catalogue (<code>parentId</code> self-relation). Unique <code>slug</code> for filters.</p>
+
+    <h3>4.3 Auction</h3>
+    <p>Listing content, pricing (<code>startPrice</code>, optional reserve / max cap), <code>currentBid</code>, <code>minBidIncrement</code>, clock (<code>endsAt</code>), status, winner.</p>
+    <div class="box">pending → (approve) live → (end) ended
+pending → (reject) cancelled
+ended + paid escrow → sold path</div>
+
+    <h3>4.4 Bid</h3>
+    <p>Immutable history rows. Opening bid may equal start price; later bids add increment. Auction row is locked during place-bid to prevent race conditions.</p>
+
+    <h3>4.5 Watchlist</h3>
+    <p>Unique pair (<code>userId</code>, <code>auctionId</code>).</p>
+
+    <h3>4.6 Notification</h3>
+    <p>Typed alerts with optional JSON meta. Indexed by (<code>userId</code>, <code>read</code>).</p>
+
+    <h3>4.7 Transaction (escrow)</h3>
+    <p>Links auction, buyer, seller, amount, Stripe ids, hold/ship/dispute timestamps.</p>
+    <div class="box">pending → held → completed
+              ↘ disputed → completed | refunded
+              ↘ failed | refunded
+
+Unique: stripeSessionId
+Index: (auctionId, status)</div>
+    <p class="muted"><strong>Note for management:</strong> Release marks funds completed in the ledger. Automated Stripe Connect payout to seller bank accounts is recommended as Phase 2.</p>
+
+    <h3>4.8 Review</h3>
+    <p>Unique (<code>auctionId</code>, <code>fromUserId</code>). Feeds user rating aggregates.</p>
+
+    <h2>5. Enumerations</h2>
+    <table>
+      <thead><tr><th>Enum</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Role</td><td>buyer, seller, admin</td></tr>
+        <tr><td>AuctionStatus</td><td>pending, live, ended, cancelled, sold</td></tr>
+        <tr><td>TransactionStatus</td><td>pending, held, disputed, completed, failed, refunded</td></tr>
+        <tr><td>VerificationStatus</td><td>none, pending, approved, rejected</td></tr>
+        <tr><td>NotificationType</td><td>outbid, ending_soon, won, approved, rejected, general</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. Key business rules</h2>
+    <table>
+      <thead><tr><th>Rule</th><th>Enforcement</th></tr></thead>
+      <tbody>
+        <tr><td>Opening bid ≥ start price</td><td>API minimumNextBid</td></tr>
+        <tr><td>Later bids ≥ current + increment</td><td>API + row lock</td></tr>
+        <tr><td>Cannot bid on own listing</td><td>API</td></tr>
+        <tr><td>Bid/sell requires KYC + bank approved</td><td>Compliance gate</td></tr>
+        <tr><td>Only pending listings approved/rejected</td><td>API</td></tr>
+        <tr><td>Production payments require Stripe</td><td>API (dev bypass flagged)</td></tr>
+        <tr><td>One Stripe session → one escrow row</td><td>Unique stripeSessionId</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. Physical deployment (Render)</h2>
+    <table>
+      <thead><tr><th>Resource</th><th>Name</th><th>Region</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Postgres</td><td>bid-on-db</td><td>Singapore</td><td>Private network; PG 16</td></tr>
+        <tr><td>API</td><td>bid-on-api</td><td>Singapore</td><td>Runs prisma migrate deploy on start</td></tr>
+        <tr><td>Website</td><td>bid-on</td><td>Singapore</td><td>Public UI</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. Security summary</h2>
+    <ul>
+      <li>Passwords stored as bcrypt hashes.</li>
+      <li><code>JWT_SECRET</code> required in production (min 16 characters).</li>
+      <li>CORS locked to configured frontend origins in production.</li>
+      <li>Socket notification rooms require authenticated user.</li>
+      <li>KYC file privacy: recommend private object storage (Phase 2).</li>
+    </ul>
+
+    <h2>9. Schema source of truth</h2>
+    <p>
+      Engineering schema: <code>backend/prisma/schema.prisma</code><br />
+      Migrations: <code>backend/prisma/migrations/</code>
+    </p>
+
+    <h2>10. Document control</h2>
+    <table>
+      <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+      <tbody>
+        <tr><td>1.0</td><td>Nov 2026</td><td>Initial architecture for management</td></tr>
+        <tr><td>1.1</td><td>Nov 2026</td><td>Bid locking, escrow uniqueness, production hardening</td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      To create a PDF: open this file in Chrome/Edge → Print → Save as PDF (enable background graphics).<br />
+      Editable Markdown twin: <code>docs/DATABASE_ARCHITECTURE.md</code>
+    </div>
+  </div>
+</body>
+</html>

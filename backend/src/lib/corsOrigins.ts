@@ -5,12 +5,15 @@ export function getCorsOrigins(): string[] {
     .split(",")
     .map((s) => s.trim().replace(/\/$/, ""))
     .filter(Boolean);
-  // Always allow local Next.js + the public Render frontend.
-  const extras = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://bid-on.onrender.com",
-  ];
+  const isProd = process.env.NODE_ENV === "production";
+  // Localhost only in development. Production uses FRONTEND_URL + public Render site.
+  const extras = isProd
+    ? ["https://bid-on.onrender.com"]
+    : [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://bid-on.onrender.com",
+      ];
   return [...new Set([...fromEnv, ...extras])];
 }
 

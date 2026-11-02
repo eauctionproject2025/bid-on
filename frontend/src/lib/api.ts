@@ -1,6 +1,14 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+if (
+  typeof window !== "undefined" &&
+  process.env.NODE_ENV === "production" &&
+  !rawApiUrl
+) {
+  console.error("NEXT_PUBLIC_API_URL is not set — API calls will fail in production");
+}
+export const API_URL = rawApiUrl || "http://localhost:4000";
 
 export type VerificationStatus = "none" | "pending" | "approved" | "rejected";
 

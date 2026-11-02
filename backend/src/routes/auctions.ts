@@ -331,6 +331,9 @@ router.post(
     const reason = z.string().min(3).parse(req.body.reason || "Does not meet guidelines");
     const auction = await prisma.auction.findUnique({ where: { id: param(req, "id") } });
     if (!auction) return res.status(404).json({ error: "Auction not found" });
+    if (auction.status !== "pending") {
+      return res.status(400).json({ error: "Only pending auctions can be rejected" });
+    }
 
     const updated = await prisma.auction.update({
       where: { id: auction.id },

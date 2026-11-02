@@ -69,12 +69,13 @@ router.post(
       verifyEmailHtml(verifyUrl)
     );
 
+    const isProd = process.env.NODE_ENV === "production";
     res.status(201).json({
       message: sent.delivered
         ? "Registered. Check your email for a verification link."
         : "Registered. Check the API console for the verification link (email could not be sent).",
       email: user.email,
-      ...(!sent.delivered ? { verifyUrl } : {}),
+      ...(!sent.delivered && !isProd ? { verifyUrl } : {}),
     });
   })
 );
@@ -144,11 +145,12 @@ router.post(
       "Verify your Bid On account",
       verifyEmailHtml(verifyUrl)
     );
+    const isProd = process.env.NODE_ENV === "production";
     res.json({
       message: sent.delivered
         ? "Verification email resent"
         : "Verification link generated — check the API console (email could not be sent).",
-      ...(!sent.delivered ? { verifyUrl } : {}),
+      ...(!sent.delivered && !isProd ? { verifyUrl } : {}),
     });
   })
 );
@@ -224,7 +226,9 @@ router.post(
         "Reset your Bid On password",
         resetOtpEmailHtml(otp)
       );
-      if (!sent.delivered) devOtp = otp;
+      if (!sent.delivered && process.env.NODE_ENV !== "production") {
+        devOtp = otp;
+      }
     }
 
     res.json({

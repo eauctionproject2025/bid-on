@@ -1,17 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export function Countdown({ endsAt }: { endsAt: string }) {
+export function Countdown({
+  endsAt,
+  onEnded,
+}: {
+  endsAt: string;
+  onEnded?: () => void;
+}) {
   const [label, setLabel] = useState("—");
   const [urgent, setUrgent] = useState(false);
+  const endedFired = useRef(false);
 
   useEffect(() => {
+    endedFired.current = false;
     const tick = () => {
       const diff = new Date(endsAt).getTime() - Date.now();
       if (diff <= 0) {
         setLabel("Ended");
         setUrgent(false);
+        if (!endedFired.current) {
+          endedFired.current = true;
+          onEnded?.();
+        }
         return;
       }
       setUrgent(diff < 60 * 60 * 1000);
@@ -32,7 +44,7 @@ export function Countdown({ endsAt }: { endsAt: string }) {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [endsAt]);
+  }, [endsAt, onEnded]);
 
   return (
     <span

@@ -21,26 +21,33 @@ export async function finalizeAuction(
     !auction.reservePrice ||
     (topBid && Number(topBid.amount) >= Number(auction.reservePrice));
 
-  const updated = await prisma.auction.update({
-    where: { id: auction.id },
+  const winnerId = meetsReserve && topBid ? topBid.bidderId : null;
+  const finalBid = topBid ? topBid.amount : auction.currentBid;
+  const claimed = await prisma.auction.updateMany({
+    where: { id: auction.id, status: "live" },
     data: {
       status: "ended",
       endsAt: options?.force ? new Date() : auction.endsAt,
-      winnerId: meetsReserve && topBid ? topBid.bidderId : null,
+      winnerId,
+      ...(topBid ? { currentBid: topBid.amount } : {}),
     },
   });
+  if (claimed.count === 0) return null;
+
+  const updated = await prisma.auction.findUnique({ where: { id: auction.id } });
+  if (!updated) return null;
 
   emitAuctionEnded(auction.id, {
     auctionId: auction.id,
     winnerId: updated.winnerId,
-    finalBid: auction.currentBid,
+    finalBid,
   });
 
   if (updated.winnerId) {
     await createNotification(
       updated.winnerId,
       "won",
-      `You won "${auction.title}" for ${auction.currentBid} BDT. Pay into escrow to claim it.`,
+      `You won "${auction.title}" for ${finalBid} BDT. Pay into escrow to claim it.`,
       { auctionId: auction.id }
     );
   }

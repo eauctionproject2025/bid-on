@@ -52,6 +52,14 @@ router.post(
 
     const stripe = getStripe();
     if (!stripe) {
+      const allowDevPay =
+        process.env.NODE_ENV !== "production" ||
+        process.env.ALLOW_DEV_PAYMENTS === "true";
+      if (!allowDevPay) {
+        return res.status(503).json({
+          error: "Payments unavailable: Stripe is not configured",
+        });
+      }
       const txn = await placeInEscrow({
         auctionId,
         buyerId: req.user!.id,

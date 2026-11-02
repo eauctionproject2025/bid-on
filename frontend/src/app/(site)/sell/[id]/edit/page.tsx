@@ -36,11 +36,11 @@ import { sellSchema, SellValues } from "@/lib/schemas";
 import { toastFromError, toastSuccess, toastValidationErrors } from "@/lib/toast";
 
 function durationMinutes(auction: Auction) {
-  const start = auction.createdAt
-    ? new Date(auction.createdAt).getTime()
-    : Date.now();
-  const end = new Date(auction.endsAt).getTime();
-  return Math.min(43200, Math.max(1, Math.round((end - start) / 60000)));
+  // Remaining minutes until endsAt — matches SellerEditPanel / backend PATCH semantics.
+  const remaining = Math.round(
+    (new Date(auction.endsAt).getTime() - Date.now()) / 60000
+  );
+  return Math.min(43200, Math.max(1, remaining));
 }
 
 function EditInner() {

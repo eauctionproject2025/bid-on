@@ -49,15 +49,22 @@ function CheckoutInner() {
           );
           if (
             !cancelled &&
-            (result.status === "complete" || result.payment_status === "paid")
+            result.status === "complete" &&
+            result.payment_status === "paid"
           ) {
             setPaid(true);
             toastSuccess("Payment successful");
             await refetch();
             return;
           }
+          if (!cancelled) {
+            toastError("Payment not confirmed yet. Refresh if you were charged.");
+            await refetch();
+            return;
+          }
         }
-        if (!cancelled) {
+        // Dev / simulated checkout (no Stripe session id)
+        if (!cancelled && !sessionId) {
           setPaid(true);
           toastSuccess("Payment successful");
           await refetch();

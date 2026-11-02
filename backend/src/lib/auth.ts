@@ -29,7 +29,16 @@ declare global {
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "bid-on-dev-secret";
+function resolveJwtSecret() {
+  const secret = process.env.JWT_SECRET?.trim();
+  if (secret && secret.length >= 16) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET must be set to at least 16 characters in production");
+  }
+  return "bid-on-dev-secret";
+}
+
+const JWT_SECRET = resolveJwtSecret();
 
 export function signToken(user: AuthUser) {
   return jwt.sign(
