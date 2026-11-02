@@ -98,7 +98,7 @@ export function createApp() {
         if (!list.length) { box.textContent = 'No live auctions yet.'; return; }
         box.innerHTML = list.map(a => {
           const img = (a.images && a.images[0]) || '';
-          const bid = Number(a.currentBid || a.startPrice || 0).toLocaleString();
+          const bid = (Number(a.currentBid) > 0 ? Number(a.currentBid) : Number(a.startPrice || 0)).toLocaleString();
           return '<div class="lot">' +
             (img ? '<img src="'+img+'" alt="" />' : '') +
             '<div><strong>'+a.title+'</strong><div class="muted">'+(a.category?.name||'')+' · '+(a.seller?.name||'')+'</div>' +
