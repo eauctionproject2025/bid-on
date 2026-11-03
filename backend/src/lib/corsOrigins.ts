@@ -5,19 +5,31 @@ export function getCorsOrigins(): string[] {
     .split(",")
     .map((s) => s.trim().replace(/\/$/, ""))
     .filter(Boolean);
-  const isProd = process.env.NODE_ENV === "production";
-  // Localhost only in development. Production uses FRONTEND_URL + public Render site.
-  const extras = isProd
-    ? ["https://bid-on.onrender.com"]
-    : [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://bid-on.onrender.com",
-      ];
-  return [...new Set([...fromEnv, ...extras])];
+
+  // Always allow the public Render site + local Next.js (local UI → live API is common).
+  const always = [
+    "https://bid-on.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ];
+
+  return [...new Set([...fromEnv, ...always])];
 }
 
-/** Primary frontend origin (first FRONTEND_URL entry), no trailing slash. */
+/**
+ * Primary frontend origin for verification / payment return links.
+ * Prefer the live Render website over a stale Vercel URL in FRONTEND_URL.
+ */
 export function getFrontendOrigin(): string {
-  return getCorsOrigins()[0] || "http://localhost:3000";
+  const override = process.env.PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  if (override) return override;
+
+  const origins = getCorsOrigins();
+  const renderSite = origins.find((o) => o === "https://bid-on.onrender.com");
+  if (renderSite) return renderSite;
+
+  const publicOrigin = origins.find(
+    (o) => !o.includes("localhost") && !o.includes("127.0.0.1")
+  );
+  return publicOrigin || origins[0] || "http://localhost:3000";
 }

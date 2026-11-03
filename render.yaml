@@ -47,6 +47,8 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
+      # Must match the site users open in the browser (verification links + CORS).
+      # If Dashboard still has https://bid-on.vercel.app, change it to this value and redeploy.
       - key: FRONTEND_URL
         value: https://bid-on.onrender.com
       # Free web services have no persistent disk. Uploaded images reset on each deploy.
