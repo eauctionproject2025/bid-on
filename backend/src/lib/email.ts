@@ -19,7 +19,6 @@ const transporter = hasSmtp
       host: process.env.SMTP_HOST,
       port: smtpPort,
       secure: smtpSecure,
-      // IPv4 preference comes from dns.setDefaultResultOrder above
       connectionTimeout: 12_000,
       greetingTimeout: 12_000,
       socketTimeout: 20_000,
@@ -30,7 +29,11 @@ const transporter = hasSmtp
     })
   : null;
 
-export type SendEmailResult = { delivered: boolean };
+export type SendEmailResult = {
+  delivered: boolean;
+  /** Ethereal preview URL when using the local test transport */
+  previewUrl?: string;
+};
 
 function defaultFrom() {
   return (
@@ -79,9 +82,32 @@ async function sendWithSmtp(
   });
 }
 
+async function sendWithEthereal(
+  to: string,
+  subject: string,
+  html: string
+): Promise<string | false> {
+  const testAccount = await nodemailer.createTestAccount();
+  const ethereal = nodemailer.createTransport({
+    host: testAccount.smtp.host,
+    port: testAccount.smtp.port,
+    secure: testAccount.smtp.secure,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    },
+  });
+  const info = await ethereal.sendMail({
+    from: `"Bid On" <${testAccount.user}>`,
+    to,
+    subject,
+    html,
+  });
+  return nodemailer.getTestMessageUrl(info) || false;
+}
+
 /**
- * Delivery order: Resend (HTTPS) → SMTP → console fallback.
- * Resend works on networks that block Gmail SMTP ports.
+ * Delivery order: Resend (HTTPS) → SMTP → Ethereal (non-prod) → console fallback.
  */
 export async function sendEmail(
   to: string,
@@ -102,7 +128,23 @@ export async function sendEmail(
       await sendWithSmtp(to, subject, html);
       return { delivered: true };
     } catch (err) {
-      console.error("[email] SMTP send failed; falling back to console:", err);
+      console.error("[email] SMTP send failed; trying next transport:", err);
+    }
+  }
+
+  const allowEthereal =
+    process.env.NODE_ENV !== "production" ||
+    process.env.EMAIL_USE_ETHEREAL === "1";
+
+  if (allowEthereal) {
+    try {
+      const previewUrl = await sendWithEthereal(to, subject, html);
+      if (previewUrl) {
+        console.log(`[email:ethereal] Preview: ${previewUrl}`);
+        return { delivered: false, previewUrl };
+      }
+    } catch (err) {
+      console.error("[email] Ethereal failed; falling back to console:", err);
     }
   }
 

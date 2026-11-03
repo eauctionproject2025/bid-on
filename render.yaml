@@ -54,6 +54,10 @@ services:
         value: uploads
       - key: STRIPE_CURRENCY
         value: usd
+      # Optional email (set in Render Dashboard → bid-on-api → Environment):
+      # RESEND_API_KEY=re_...
+      # RESEND_FROM=Bid On <onboarding@resend.dev>
+      # Without these, registration still works: API returns verifyUrl for on-screen verification.
 
 databases:
   - name: bid-on-db

@@ -554,7 +554,13 @@ export function useRegister() {
       password: string;
       role: string;
     }) =>
-      api<{ email: string; verifyUrl?: string }>("/api/auth/register", {
+      api<{
+        email: string;
+        message: string;
+        emailDelivered?: boolean;
+        verifyUrl?: string;
+        emailPreviewUrl?: string;
+      }>("/api/auth/register", {
         method: "POST",
         data: data,
       }),
@@ -574,7 +580,12 @@ export function useVerifyOtp() {
 export function useResendOtp() {
   return useMutation({
     mutationFn: (email: string) =>
-      api<{ verifyUrl?: string; message: string }>("/api/auth/resend-otp", {
+      api<{
+        verifyUrl?: string;
+        message: string;
+        emailDelivered?: boolean;
+        emailPreviewUrl?: string;
+      }>("/api/auth/resend-otp", {
         method: "POST",
         data: { email },
       }),

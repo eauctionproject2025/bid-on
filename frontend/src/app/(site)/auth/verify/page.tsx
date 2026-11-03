@@ -32,14 +32,20 @@ function VerifyInner() {
     token ? "verifying" : "idle"
   );
   const [errorMsg, setErrorMsg] = useState("");
-  const [devLink, setDevLink] = useState<string | null>(null);
+  const [verifyLink, setVerifyLink] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const tried = useRef(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("bidon-verify-url");
     if (stored) {
-      setDevLink(stored);
+      setVerifyLink(stored);
       sessionStorage.removeItem("bidon-verify-url");
+    }
+    const storedPreview = sessionStorage.getItem("bidon-email-preview");
+    if (storedPreview) {
+      setPreviewUrl(storedPreview);
+      sessionStorage.removeItem("bidon-email-preview");
     }
   }, []);
 
@@ -88,7 +94,8 @@ function VerifyInner() {
       try {
         const data = await resendMutation.mutateAsync(values.email);
         toastSuccess(data.message);
-        if (data.verifyUrl) setDevLink(data.verifyUrl);
+        if (data.verifyUrl) setVerifyLink(data.verifyUrl);
+        if (data.emailPreviewUrl) setPreviewUrl(data.emailPreviewUrl);
       } catch (err) {
         const msg = toastFromError(err, "Resend failed");
         setError("root", { message: msg });
@@ -143,15 +150,44 @@ function VerifyInner() {
       <Card>
         <CardHeader>
           <CardTitle className="font-[family-name:var(--font-display)] text-4xl">
-            Check your email
+            Verify your account
           </CardTitle>
           <CardDescription>
-            We sent a verification link to your inbox. Open it to activate your
-            account. If it didn&apos;t arrive, request a new one below.
+            {verifyLink
+              ? "Email delivery is unavailable right now. Open the verification link below to activate your account."
+              : "We sent a verification link to your inbox. Open it to activate your account. If it did not arrive, request a new one below."}
           </CardDescription>
         </CardHeader>
         <form onSubmit={onResend}>
           <CardContent className="space-y-4">
+            {verifyLink && (
+              <div className="space-y-3 rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/40">
+                <p className="text-sm font-medium">
+                  Instant verification (email not delivered)
+                </p>
+                <a href={verifyLink} className="block w-full">
+                  <Button type="button" className="w-full">
+                    Open verification link
+                  </Button>
+                </a>
+                <p className="break-all text-xs text-muted-foreground">
+                  {verifyLink}
+                </p>
+              </div>
+            )}
+            {previewUrl && (
+              <p className="text-sm">
+                Test inbox preview:{" "}
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary underline"
+                >
+                  open Ethereal message
+                </a>
+              </p>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" {...register("email")} />
@@ -162,19 +198,12 @@ function VerifyInner() {
             {errors.root && (
               <p className="text-sm text-destructive">{errors.root.message}</p>
             )}
-            {devLink && (
-              <p className="break-all text-sm text-accent">
-                Dev link (email blocked):{" "}
-                <a href={devLink} className="underline">
-                  {devLink}
-                </a>
-              </p>
-            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button
               type="submit"
               className="w-full"
+              variant={verifyLink ? "outline" : "default"}
               disabled={resendMutation.isPending}
             >
               {resendMutation.isPending

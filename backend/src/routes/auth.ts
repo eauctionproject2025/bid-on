@@ -69,13 +69,20 @@ router.post(
       verifyEmailHtml(verifyUrl)
     );
 
-    const isProd = process.env.NODE_ENV === "production";
+    // Always return verifyUrl when mail was not delivered so registration is not blocked
+    // (common when RESEND/SMTP is unset or Resend rejects unverified recipients).
     res.status(201).json({
       message: sent.delivered
         ? "Registered. Check your email for a verification link."
-        : "Registered. Check the API console for the verification link (email could not be sent).",
+        : "Registered. Email could not be sent — use the verification link shown on the next screen.",
       email: user.email,
-      ...(!sent.delivered && !isProd ? { verifyUrl } : {}),
+      emailDelivered: sent.delivered,
+      ...(!sent.delivered
+        ? {
+            verifyUrl,
+            ...(sent.previewUrl ? { emailPreviewUrl: sent.previewUrl } : {}),
+          }
+        : {}),
     });
   })
 );
@@ -145,12 +152,17 @@ router.post(
       "Verify your Bid On account",
       verifyEmailHtml(verifyUrl)
     );
-    const isProd = process.env.NODE_ENV === "production";
     res.json({
       message: sent.delivered
         ? "Verification email resent"
-        : "Verification link generated — check the API console (email could not be sent).",
-      ...(!sent.delivered && !isProd ? { verifyUrl } : {}),
+        : "Email could not be sent — use the verification link below.",
+      emailDelivered: sent.delivered,
+      ...(!sent.delivered
+        ? {
+            verifyUrl,
+            ...(sent.previewUrl ? { emailPreviewUrl: sent.previewUrl } : {}),
+          }
+        : {}),
     });
   })
 );
@@ -211,6 +223,7 @@ router.post(
     const email = z.string().email().parse(req.body.email).toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
 
+    let emailDelivered: boolean | undefined;
     let devOtp: string | undefined;
     if (user) {
       const otp = generateOtp();
@@ -226,15 +239,19 @@ router.post(
         "Reset your Bid On password",
         resetOtpEmailHtml(otp)
       );
-      if (!sent.delivered && process.env.NODE_ENV !== "production") {
+      emailDelivered = sent.delivered;
+      // Surface OTP when mail fails so password reset still works without SMTP/Resend.
+      if (!sent.delivered) {
         devOtp = otp;
       }
     }
 
     res.json({
-      message:
-        "If an account exists for that email, a reset code has been sent.",
+      message: devOtp
+        ? "Email could not be sent — use the reset code shown on screen."
+        : "If an account exists for that email, a reset code has been sent.",
       email,
+      ...(emailDelivered !== undefined ? { emailDelivered } : {}),
       ...(devOtp ? { devOtp } : {}),
     });
   })

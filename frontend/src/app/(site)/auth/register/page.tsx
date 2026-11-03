@@ -58,8 +58,13 @@ export default function RegisterPage() {
             ? "Account created — open the verification link on the next screen"
             : "Account created — check your email for a verification link"
         );
-        if (data.verifyUrl && typeof window !== "undefined") {
-          sessionStorage.setItem("bidon-verify-url", data.verifyUrl);
+        if (typeof window !== "undefined") {
+          if (data.verifyUrl) {
+            sessionStorage.setItem("bidon-verify-url", data.verifyUrl);
+          }
+          if (data.emailPreviewUrl) {
+            sessionStorage.setItem("bidon-email-preview", data.emailPreviewUrl);
+          }
         }
         router.push(
           `/auth/verify?email=${encodeURIComponent(data.email)}`
