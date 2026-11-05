@@ -1,0 +1,23 @@
+# Local PostgreSQL for Bid On (optional — skip if you already have Postgres)
+# Usage: docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bid-on-db-local
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "12345678"
+      POSTGRES_DB: bidon
+    volumes:
+      - bid_on_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bidon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bid_on_pgdata:

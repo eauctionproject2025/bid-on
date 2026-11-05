@@ -6,3 +6,7 @@ uploads/
 .next/
 *.log
 .DS_Store
+docs/_audit_extract/
+frontend/build-log.txt
+__pycache__/
+*.pyc

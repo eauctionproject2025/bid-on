@@ -4,8 +4,11 @@
   "scripts": {
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
+    "db:up": "docker compose up -d",
     "db:migrate": "npm --prefix backend run db:migrate",
     "db:seed": "npm --prefix backend run db:seed",
+    "setup:local": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-local.ps1",
+    "diagrams": "python -m http.server 8765 --directory docs/diagrams",
     "test": "npm --prefix backend test && npm --prefix frontend test",
     "test:backend": "npm --prefix backend test",
     "test:frontend": "npm --prefix frontend test"

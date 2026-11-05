@@ -40,25 +40,74 @@ npm test   # Vitest + Supertest (needs Postgres + seed data)
 
 ## Prerequisites
 
-- Node.js 20+
-- PostgreSQL running locally (default URL in `backend/.env`)
+- Node.js **20+** (22 recommended)
+- PostgreSQL **16** (or Docker Desktop for `docker compose`)
 
-## Setup
+## Clone and run locally
 
 ```bash
+git clone https://github.com/eauctionproject2025/bid-on.git
+cd bid-on
+```
+
+### Option A — setup script
+
+**Windows (PowerShell):**
+
+```powershell
+./scripts/setup-local.ps1
+```
+
+**macOS / Linux:**
+
+```bash
+chmod +x scripts/setup-local.sh
+./scripts/setup-local.sh
+```
+
+Then start API + UI in two terminals:
+
+```bash
+cd backend && npm run dev      # http://localhost:4000
+cd frontend && npm run dev     # http://localhost:3000
+```
+
+### Option B — manual steps
+
+```bash
+# 0) Database (Docker) — skip if Postgres already runs on :5432
+docker compose up -d
+
 # 1) Backend
 cd backend
-cp .env.example .env   # edit DATABASE_URL if needed
-npm install
-npx prisma migrate dev
+cp .env.example .env          # edit DATABASE_URL / JWT_SECRET if needed
+npm install --include=dev
+npx prisma migrate deploy     # or: npx prisma migrate dev
 npm run db:seed
-npm run dev            # http://localhost:4000
+npm run dev                   # http://localhost:4000
 
 # 2) Frontend (new terminal)
 cd frontend
-npm install
-npm run dev            # http://localhost:3000
+cp .env.example .env.local    # NEXT_PUBLIC_API_URL=http://localhost:4000
+npm install --include=dev
+npm run dev                   # http://localhost:3000
 ```
+
+### Registration without email
+
+If Resend/SMTP is not configured, registration still works: the UI shows an **Open verification link** button on `/auth/verify`. You do not need a real inbox for local demos.
+
+### Diagrams (thesis pack)
+
+Editable sources: `docs/diagrams/source/` (`.mmd`, `.puml`, `.drawio`).
+
+```bash
+cd docs/diagrams
+python -m http.server 8765
+# open http://127.0.0.1:8765/view-diagrams.html
+```
+
+Full map: [`docs/diagrams/README.md`](docs/diagrams/README.md). Thesis DOCX: [`docs/final-report/project-report.docx`](docs/final-report/project-report.docx).
 
 ## Demo accounts
 
@@ -70,7 +119,7 @@ npm run dev            # http://localhost:3000
 
 ## Features
 
-- Register / login with email verification link (link logged to console when SMTP fails)
+- Register / login with email verification (on-screen link when email cannot be sent)
 - Forgot password via email OTP (`/auth/forgot` → `/auth/reset`)
 - Seller listings with image upload → **admin approval**
 - Live auctions with countdown + Socket.IO bid updates
@@ -136,7 +185,7 @@ Declined: `4000 0000 0000 9995`
 - `STRIPE_CURRENCY` — `usd` for sandboxes; `bdt` when enabled
 - `RESEND_API_KEY` — preferred email delivery over HTTPS ([Resend](https://resend.com)). Use when Gmail SMTP is blocked. Free test: `RESEND_FROM="Bid On <onboarding@resend.dev>"` and send only to the email on your Resend account.
 - `SMTP_*` — optional Gmail/SMTP fallback; many ISPs block ports 587/465.
-- Without Resend or working SMTP, verification links print to the API console / are returned for local/dev.
+- Without Resend or working SMTP, the API returns `verifyUrl` so the UI can show an on-screen verification button (local and production).
 - Forgot password: `/auth/forgot` → OTP email → `/auth/reset`
 
 **Frontend** (`frontend/.env.local`):
